@@ -5,12 +5,21 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/google/go-github/github"
 	"github.com/gorilla/mux"
 )
 
 func main() {
+	f, err := os.OpenFile("/tmp/tkg5360.log", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	if err != nil {
+		log.Fatalf("error opening file: %v", err)
+	}
+	defer f.Close()
+
+	log.SetOutput(f)
+
 	log.Println("tftesting started, listening for webhook..")
 	handleRequests()
 }
@@ -35,7 +44,7 @@ func handleWebhook(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var data interface{}
+	var data map[string]interface{}
 	switch e := event.(type) {
 	case *github.IssueCommentEvent:
 		log.Printf("Issue comment %s \n", *e.Action)
@@ -48,7 +57,8 @@ func handleWebhook(w http.ResponseWriter, r *http.Request) {
 				log.Printf("error loading the webhook payload")
 				return
 			}
-			fmt.Println(data)
+			fmt.Println(data["issue"])
+			fmt.Println(data["comment"])
 		}
 	default:
 		log.Printf("unknown event type %s\n", github.WebHookType(r))
