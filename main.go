@@ -6,12 +6,18 @@ import (
 	"net/http"
 
 	"github.com/google/go-github/github"
+	"github.com/gorilla/mux"
 )
 
 func main() {
-	log.Println("server started")
-	http.HandleFunc("/webhook", handleWebhook)
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	log.Println("tftesting started, listening for webhook..")
+	handleRequests()
+}
+
+func handleRequests() {
+	router := mux.NewRouter().StrictSlash(true)
+	router.HandleFunc("/webhook", handleWebhook)
+	log.Fatal(http.ListenAndServe(":8080", router))
 }
 
 func handleWebhook(w http.ResponseWriter, r *http.Request) {
