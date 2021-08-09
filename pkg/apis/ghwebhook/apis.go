@@ -45,7 +45,7 @@ func handleWebhook(w http.ResponseWriter, r *http.Request) {
 				log.Printf("error loading the webhook payload")
 				return
 			}
-
+			log.Println(ic)
 		}
 	default:
 		log.Printf("unknown event type %s\n", github.WebHookType(r))
