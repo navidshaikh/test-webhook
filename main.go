@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -34,14 +35,20 @@ func handleWebhook(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var data interface{}
 	switch e := event.(type) {
 	case *github.IssueCommentEvent:
-		log.Printf("Issue comment\n", *e.Action)
+		log.Printf("Issue comment %s \n", *e.Action)
 		if e.Issue.IsPullRequest() && e.Action != nil && *e.Action == "created" && *e.Issue.State == "open" {
 			fmt.Println(*e.Comment.ID)
 			fmt.Println(*e.Comment.Body)
 			fmt.Println(*e.Repo.PullsURL)
-			fmt.Println(string(payload))
+			err := json.Unmarshal(payload, &data)
+			if err != nil {
+				log.Printf("error loading the webhook payload")
+				return
+			}
+			fmt.Println(data)
 		}
 	default:
 		log.Printf("unknown event type %s\n", github.WebHookType(r))
