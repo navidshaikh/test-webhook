@@ -44,6 +44,7 @@ func handleWebhook(w http.ResponseWriter, r *http.Request) {
 		// this is a pull request, do something with it
 		fmt.Println("Issue comment", *e.Action)
 		if e.Action != nil && *e.Action == "created" {
+			fmt.Println(*e.Issue)
 			fmt.Println(*e.Comment.Body)
 			fmt.Println(*e.Sender.Login)
 		}
