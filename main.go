@@ -35,17 +35,13 @@ func handleWebhook(w http.ResponseWriter, r *http.Request) {
 	}
 
 	switch e := event.(type) {
-	case *github.PullRequestReviewEvent:
-		fmt.Println("pr review event", *e.Action)
-	case *github.PullRequestReviewCommentEvent:
-		fmt.Println("pr review comment event", *e.Action)
 	case *github.IssueCommentEvent:
-		// this is a pull request, do something with it
-		fmt.Println("Issue comment", *e.Action)
+		log.Printf("Issue comment\n", *e.Action)
 		if e.Issue.IsPullRequest() && e.Action != nil && *e.Action == "created" && *e.Issue.State == "open" {
-			fmt.Println(*e.Issue)
+			fmt.Println(*e.Comment.ID)
 			fmt.Println(*e.Comment.Body)
-			fmt.Println(*e.Sender.Login)
+			fmt.Println(*e.Repo.PullsURL)
+			fmt.Println(string(payload))
 		}
 	default:
 		log.Printf("unknown event type %s\n", github.WebHookType(r))
