@@ -1,12 +1,14 @@
 package ghwebhook
 
 import (
+	"context"
 	"encoding/json"
 	"log"
 	"net/http"
 
 	"github.com/google/go-github/github"
 	"github.com/gorilla/mux"
+	gh "github.com/navidshaikh/test-webhook/pkg/github"
 )
 
 func HandleRequests() {
@@ -43,6 +45,18 @@ func handleWebhook(w http.ResponseWriter, r *http.Request) {
 			log.Println(ic.Comment.GetBody())
 			log.Println(ic.Comment.User.GetLogin())
 			log.Println(ic.Comment.GetID())
+
+			ctx := context.Background()
+			g, err := gh.DefaultGithub(ctx, "navidshaikh", "test-webhook")
+			if err != nil {
+				log.Println(err)
+			}
+			commit, err := g.GetLatestPRCommit(ctx, 6)
+			if err != nil {
+				log.Println(err)
+			}
+			log.Println(commit)
+
 		}
 	default:
 		log.Printf("unknown event type %s\n", github.WebHookType(r))
