@@ -40,7 +40,7 @@ func handleWebhook(w http.ResponseWriter, r *http.Request) {
 	case *github.IssueCommentEvent:
 		if e.Issue.IsPullRequest() && e.Action != nil && *e.Action == "created" && *e.Issue.State == "open" {
 			log.Printf("Issue comment %s \n", *e.Action)
-			var ic github.IssueComment
+			var ic github.IssueCommentEvent
 			if err := json.Unmarshal(payload, &ic); err != nil {
 				log.Printf("error loading the webhook payload")
 				return
