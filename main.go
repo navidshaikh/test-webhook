@@ -15,5 +15,5 @@ func main() {
 	defer f.Close()
 
 	log.SetOutput(f)
-	ghwebhook.HandleRequests()
+	ghwebhook.Listen()
 }

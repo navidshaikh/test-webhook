@@ -8,10 +8,12 @@ import (
 
 	"github.com/google/go-github/github"
 	"github.com/gorilla/mux"
+
 	gh "github.com/navidshaikh/test-webhook/pkg/github"
+	"github.com/navidshaikh/test-webhook/pkg/util"
 )
 
-func HandleRequests() {
+func Listen() {
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/webhook", handleWebhook)
 	log.Println("tftesting started, listening for webhook..")
@@ -41,25 +43,49 @@ func handleWebhook(w http.ResponseWriter, r *http.Request) {
 				log.Printf("error loading the webhook payload")
 				return
 			}
-			log.Println(ic.Issue.GetNumber())
-			log.Println(ic.Comment.GetBody())
-			log.Println(ic.Comment.User.GetLogin())
-			log.Println(ic.Comment.GetID())
 
-			ctx := context.Background()
-			g, err := gh.DefaultGithub(ctx, "navidshaikh", "test-webhook")
+			err := IssueCommentHandler(ic)
 			if err != nil {
 				log.Println(err)
 			}
-			commit, err := g.GetLatestPRCommit(ctx, 6)
-			if err != nil {
-				log.Println(err)
-			}
-			log.Println(commit)
+			return
 
 		}
 	default:
 		log.Printf("unknown event type %s\n", github.WebHookType(r))
 		return
 	}
+}
+
+func IssueCommentHandler(ic *github.IssueCommentEvent) error {
+	tests := util.FindTestsFromCommentBody(ic.Comment.GetBody())
+	if len(tests) == 0 {
+		return nil
+	}
+
+	// TODO: Check here if the user who commented is a trusted reviewer
+	log.Println(ic.Comment.User.GetLogin())
+
+	prNo := ic.Issue.GetNumber()
+	ctx := context.Background()
+	g, err := gh.DefaultGithub(ctx, "navidshaikh", "test-webhook")
+	if err != nil {
+		return err
+	}
+	commit, err := g.GetLatestPRCommit(ctx, prNo)
+	if err != nil {
+		return err
+	}
+	commentID := ic.Comment.GetID()
+
+	err = TriggerTests(prNo, commit, commentID, tests)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func TriggerTest(prNo int, commit, commentID, tests string) error {
+	return nil
 }
